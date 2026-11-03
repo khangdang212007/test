@@ -3,8 +3,33 @@ const path = require("path");
 
 const app = express();
 
-const PORT = 3000;
-const OLLAMA_URL = "http://localhost:11434";
+const PORT = process.env.PORT || 3000;
+const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
+const OLLAMA_TIMEOUT_MS = 45000;
+
+function normalizeHistory(history) {
+    if (!Array.isArray(history)) return [];
+
+    return history
+        .filter(item => item && typeof item === "object")
+        .slice(-10)
+        .map(item => {
+            const role = typeof item.role === "string" ? item.role : "user";
+            const content = typeof item.content === "string"
+                ? item.content
+                : String(item.content ?? "");
+
+            return {
+                role,
+                content: content.trim()
+            };
+        })
+        .filter(item => item.content.length > 0)
+        .map(item => ({
+            role: item.role === "assistant" ? "assistant" : "user",
+            content: item.content
+        }));
+}
 
 // Cho phép nhận JSON
 app.use(express.json({ limit: "10mb" }));
@@ -12,23 +37,22 @@ app.use(express.json({ limit: "10mb" }));
 // Cho phép server phục vụ index.html, app.js, style.css...
 app.use(express.static(__dirname));
 
-
 // ================================
 // CHEMSAFE AI - CHAT API
 // ================================
 
 app.post("/api/chat", async (req, res) => {
-
     try {
+        const payload = req.body || {};
+        const rawMessage = payload.message;
+        const message = typeof rawMessage === "string" ? rawMessage.trim() : "";
+        const history = normalizeHistory(payload.history);
 
-        const { message, history = [] } = req.body;
-
-        if (!message || !message.trim()) {
+        if (!message) {
             return res.status(400).json({
                 error: "Tin nhắn không được để trống."
             });
         }
-
 
         // Prompt chuyên ngành Hóa học
         const systemPrompt = `
@@ -72,146 +96,85 @@ Nếu người dùng đưa ra một bài toán:
 Không cần trả lời quá dài nếu câu hỏi đơn giản.
 `;
 
-
-        // Chỉ lấy 10 tin nhắn gần nhất
-        const recentHistory = history.slice(-10);
-
-
-        // Tạo lịch sử hội thoại cho AI
         const messages = [
-
-            {
-                role: "system",
-                content: systemPrompt
-            },
-
-            ...recentHistory.map(item => ({
+            { role: "system", content: systemPrompt },
+            ...history.map(item => ({
                 role: item.role,
                 content: item.content
             })),
-
-            {
-                role: "user",
-                content: message
-            }
-
+            { role: "user", content: message }
         ];
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), OLLAMA_TIMEOUT_MS);
 
-        // Gửi câu hỏi sang Ollama
-        const ollamaResponse = await fetch(
-            `${OLLAMA_URL}/api/chat`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-
-                    model: "gemma3:4b",
-
-                    messages: messages,
-
-                    stream: false
-
-                })
-            }
-        );
-
-
-        // Kiểm tra Ollama
-        if (!ollamaResponse.ok) {
-
-            const errorText =
-                await ollamaResponse.text();
-
-            console.error(
-                "Ollama Error:",
-                errorText
+        try {
+            const ollamaResponse = await fetch(
+                `${OLLAMA_URL}/api/chat`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    signal: controller.signal,
+                    body: JSON.stringify({
+                        model: "gemma3:4b",
+                        messages,
+                        stream: false
+                    })
+                }
             );
 
+            if (!ollamaResponse.ok) {
+                const errorText = await ollamaResponse.text();
+                console.error("Ollama Error:", errorText);
+                return res.status(502).json({
+                    error: "Không thể kết nối với Ollama."
+                });
+            }
+
+            const data = await ollamaResponse.json();
+            const answer = data?.message?.content || "AI không trả về câu trả lời.";
+            return res.json({ answer });
+        } catch (error) {
+            if (error && error.name === "AbortError") {
+                console.error("Ollama timeout:", error);
+                return res.status(504).json({
+                    error: "Ollama quá thời gian chờ phản hồi."
+                });
+            }
+
+            console.error("Server Error:", error);
             return res.status(500).json({
-
-                error:
-                    "Không thể kết nối với Ollama."
-
+                error: "Lỗi server: " + (error && error.message ? error.message : "unknown_error")
             });
-
+        } finally {
+            clearTimeout(timeoutId);
         }
-
-
-        // Đọc kết quả
-        const data =
-            await ollamaResponse.json();
-
-
-        const answer =
-            data?.message?.content ||
-            "AI không trả về câu trả lời.";
-
-
-        // Trả câu trả lời về website
-        res.json({
-
-            answer: answer
-
-        });
-
-
     } catch (error) {
-
-        console.error(
-            "Server Error:",
-            error
-        );
-
-        res.status(500).json({
-
-            error:
-                "Lỗi server: " +
-                error.message
-
+        console.error("Request validation error:", error);
+        return res.status(500).json({
+            error: "Lỗi server: " + (error && error.message ? error.message : "unknown_error")
         });
-
     }
-
 });
-
 
 // ================================
 // KHỞI ĐỘNG SERVER
 // ================================
 
 app.listen(PORT, () => {
-
     console.log("");
     console.log("======================================");
     console.log("       CHEMSAFE AI SERVER");
     console.log("======================================");
     console.log("");
 
-    console.log(
-        `Website: http://localhost:${PORT}`
-    );
-
-    console.log(
-        `Ollama : ${OLLAMA_URL}`
-    );
-
+    console.log(`Website: http://localhost:${PORT}`);
+    console.log(`Ollama : ${OLLAMA_URL}`);
     console.log("");
-
-    console.log(
-        "AI Model: gemma3:4b"
-    );
-
+    console.log("AI Model: gemma3:4b");
     console.log("");
-
-    console.log(
-        "Server đang chạy..."
-    );
-
+    console.log("Server đang chạy...");
     console.log("======================================");
-
 });
