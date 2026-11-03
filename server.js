@@ -159,22 +159,30 @@ Không cần trả lời quá dài nếu câu hỏi đơn giản.
     }
 });
 
-// ================================
-// KHỞI ĐỘNG SERVER
-// ================================
+function startServer() {
+    return app.listen(PORT, () => {
+        console.log("");
+        console.log("======================================");
+        console.log("       CHEMSAFE AI SERVER");
+        console.log("======================================");
+        console.log("");
 
-app.listen(PORT, () => {
-    console.log("");
-    console.log("======================================");
-    console.log("       CHEMSAFE AI SERVER");
-    console.log("======================================");
-    console.log("");
+        console.log(`Website: http://localhost:${PORT}`);
+        console.log(`Ollama : ${OLLAMA_URL}`);
+        console.log("");
+        console.log("AI Model: gemma3:4b");
+        console.log("");
+        console.log("Server đang chạy...");
+        console.log("======================================");
+    });
+}
 
-    console.log(`Website: http://localhost:${PORT}`);
-    console.log(`Ollama : ${OLLAMA_URL}`);
-    console.log("");
-    console.log("AI Model: gemma3:4b");
-    console.log("");
-    console.log("Server đang chạy...");
-    console.log("======================================");
-});
+if (require.main === module) {
+    startServer();
+}
+
+module.exports = {
+    app,
+    normalizeHistory,
+    startServer
+};
