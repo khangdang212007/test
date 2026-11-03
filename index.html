@@ -18,7 +18,7 @@
 
   <!-- ═══════════════════════════════════════
      SIDEBAR NAVIGATION
-════════════════════════════════════════ -->
+ ════════════════════════════════════════ -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-icon">⬡</div>
@@ -76,7 +76,7 @@
 
   <!-- ═══════════════════════════════════════
      MAIN CONTENT
-════════════════════════════════════════ -->
+ ════════════════════════════════════════ -->
   <main class="main-content">
 
     <!-- ── TAB 1: CHATBOT AI ── -->
@@ -119,12 +119,9 @@
           </div>
         </div>
 
-        <!-- KHU VỰC NHẬP TIN NHẮN & CÔNG CỤ -->
         <div class="chat-input-area" style="position: relative;">
-          <!-- Khu vực xem trước file đính kèm -->
           <div id="ai-file-preview" class="ai-file-preview"></div>
 
-          <!-- Input tải file ẩn -->
           <input
             type="file"
             id="ai-file-upload"
@@ -144,7 +141,6 @@
             aria-label="Nhập câu hỏi cho ChemSafe AI"
           ></textarea>
 
-          <!-- Nút đính kèm file -->
           <button
             class="voice-btn"
             type="button"
@@ -155,7 +151,6 @@
             📎
           </button>
 
-          <!-- Nút thu âm giọng nói -->
           <button
             class="voice-btn"
             id="voice-btn"
@@ -167,7 +162,6 @@
             🎤
           </button>
 
-          <!-- Nút gửi tin nhắn -->
           <button
             class="send-btn"
             id="send-btn"
@@ -180,7 +174,6 @@
           </button>
         </div>
 
-        <!-- Trạng thái giọng nói -->
         <div id="voice-status" class="voice-status" aria-live="polite"></div>
 
         <div class="voice-controls">
@@ -196,7 +189,6 @@
       </div>
     </section>
 
-    <!-- ── TAB 2: CẢNH BÁO ── -->
     <section class="tab-panel" id="tab-warning">
       <div class="panel-header">
         <div>
@@ -206,7 +198,6 @@
       </div>
 
       <div class="warning-layout">
-        <!-- Checker -->
         <div class="checker-card">
           <div class="checker-title">⬡ Kiểm tra tổ hợp hóa chất</div>
           <div class="checker-row">
@@ -230,7 +221,6 @@
           </button>
         </div>
 
-        <!-- Common warnings -->
         <div class="warn-list">
           <div class="warn-list-title">⚠ Cảnh báo phổ biến</div>
           <div id="common-warnings"></div>
@@ -238,7 +228,6 @@
       </div>
     </section>
 
-    <!-- ── TAB 3: TẠO NHÃN DÁN QR CODE ── -->
     <section class="tab-panel" id="tab-qr">
       <div class="panel-header">
         <div>
@@ -308,7 +297,6 @@
       </div>
     </section>
 
-    <!-- ── TAB 4: TÍNH TOÁN HÓA HỌC ── -->
     <section class="tab-panel" id="tab-calc">
       <div class="panel-header">
         <div>
@@ -348,7 +336,6 @@
         </div>
 
         <div class="calc-grid">
-          <!-- Tính Mol, Khối lượng, Nồng độ -->
           <div class="calc-card">
             <div class="calc-title">Mol, khối lượng, nồng độ</div>
             <div class="calc-input-grid">
@@ -395,7 +382,6 @@
             <div class="solution-box" id="mole-solution"></div>
           </div>
 
-          <!-- Pha dung dịch -->
           <div class="calc-card">
             <div class="calc-title">Pha dung dịch</div>
             <div class="calc-input-grid">
@@ -429,7 +415,6 @@
             <div class="solution-box" id="preparation-solution"></div>
           </div>
 
-          <!-- Pha loãng C1V1 = C2V2 -->
           <div class="calc-card">
             <div class="calc-title">Pha loãng C1V1 = C2V2</div>
             <div class="calc-input-grid">
@@ -473,12 +458,11 @@
       </div>
     </section>
 
-    <!-- ── TAB 5: DATABASE ── -->
     <section class="tab-panel" id="tab-database">
       <div class="panel-header">
         <div>
           <h1 class="panel-title">Cơ sở dữ liệu <span class="title-accent">Hóa chất</span></h1>
-          <p class="panel-sub">Hóa chất được phân chia theo lớp 6–12 (Chương trình GDPT 2018). Một chất có thể xuất hiện ở nhiều lớp.</p>
+          <p class="panel-sub">Hóa chất được phân chia theo lớp 6–12 (Chương trình GDPT 2018). Một chất có thể xu��t hiện ở nhiều lớp.</p>
         </div>
         <button class="mol3d-db-btn" type="button" onclick="auditAllMol3D()">🧬 Kiểm tra toàn bộ mô hình 3D</button>
       </div>
@@ -492,7 +476,6 @@
 
   </main>
 
-  <!-- Loading overlay -->
   <div class="loading-overlay" id="loading">
     <div class="loading-box">
       <div class="loading-spinner"></div>
@@ -500,12 +483,12 @@
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="chemdata.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.0.1/3Dmol-min.js"></script>
   <script src="app.js"></script>
+  <script src="calc-fix.js"></script>
   <script src="mol3d.js?v=cpk-20261102"></script>
 </body>
 
